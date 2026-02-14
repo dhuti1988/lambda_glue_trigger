@@ -10,8 +10,9 @@ permissions:
   id-token: write
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
+  # Supports either AWS_REGION or AWS_DEFAULT_REGION (secrets or repo variables).
+  AWS_REGION: ${{ secrets.AWS_REGION || secrets.AWS_DEFAULT_REGION || vars.AWS_REGION || vars.AWS_DEFAULT_REGION }}
+  LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME || vars.LAMBDA_FUNCTION_NAME }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
 jobs:
@@ -21,6 +22,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate required inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${AWS_REGION:-}" ]; then
+            echo "Missing AWS region. Set secret AWS_REGION (or AWS_DEFAULT_REGION) or repo variable AWS_REGION."
+            exit 1
+          fi
+          if [ -z "${LAMBDA_FUNCTION_NAME:-}" ]; then
+            echo "Missing Lambda function name. Set secret LAMBDA_FUNCTION_NAME or repo variable LAMBDA_FUNCTION_NAME."
+            exit 1
+          fi
 
       - name: Configure AWS credentials (OIDC)
         if: ${{ env.AWS_ROLE_ARN != '' }}
