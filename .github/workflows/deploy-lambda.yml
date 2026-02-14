@@ -20,16 +20,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Auth option A (recommended): GitHub OIDC -> assume role
-      - name: Configure AWS credentials (OIDC)
-        if: ${{ secrets.AWS_ROLE_ARN != '' }}
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # Auth option B: long-lived IAM access keys in GitHub Secrets
+        
       - name: Configure AWS credentials (access keys)
         if: ${{ secrets.AWS_ROLE_ARN == '' }}
         uses: aws-actions/configure-aws-credentials@v4
